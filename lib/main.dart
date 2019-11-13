@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sociables/playerlist.dart';
 
 import 'businesslogicbaby.dart';
 
@@ -35,15 +36,24 @@ class _MyHomePageState extends State<MyHomePage> {
   var index = 0;
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Sociables")),
+        appBar: AppBar(title: Text("Sociables")),
         body: Container(
             decoration: BoxDecoration(
                 image: DecorationImage(
-                    image: AssetImage("lib/assets/felt background.jpg"), fit: BoxFit.cover)),
+                    image: AssetImage("lib/assets/felt background.jpg"),
+                    fit: BoxFit.cover)),
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  FlatButton(
+                      child: Text("Edit players"),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => PlayersList()),
+                        );
+                      }),
                   Center(
                     child: FlatButton(
                         child: Column(
