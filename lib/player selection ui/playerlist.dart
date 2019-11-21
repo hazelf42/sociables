@@ -1,106 +1,165 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:sociables/cardsscreen.dart';
-import 'package:sociables/rulesselect.dart';
-import 'businesslogicbaby.dart';
-import 'package:emoji_picker/emoji_picker.dart';
-import 'main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sociables/rulesselect.dart';
+import 'package:emoji_picker/emoji_picker.dart';
+
+import '../businesslogicbaby.dart';
+import '../cardsscreen.dart';
+import '../models.dart';
 
 class PlayersList extends StatefulWidget {
-  List<Player> playerList;
-  RuleSet ruleSet;
-  PlayersList({this.playerList, this.ruleSet});
+  PlayersList({this.playerSetsIndex, this.playerSets});
+
+  int playerSetsIndex;
+  List<PlayerSet> playerSets;
+  String setName;
 
   @override
-  PlayersListState createState() => PlayersListState(playerList, ruleSet);
+  PlayersListState createState() =>
+      PlayersListState(playerSetsIndex, playerSets);
 }
 
 class PlayersListState extends State<PlayersList> {
   //SetState
+  List<PlayerSet> playerSets;
+  int playerSetsIndex;
+  String setName;
+  PlayersListState(this.playerSetsIndex, this.playerSets);
   List<Player> playerList;
-  RuleSet ruleSet;
-  PlayersListState(this.playerList, this.ruleSet);
 
   //Ui stuff
   int editingIndex;
   final TextEditingController _controller = new TextEditingController();
   var isShowing = false;
+  var editingName = false;
 
   //Player stuff
   String newPlayerName = "";
   Emoji emojiSelected = Emoji(emoji: "😃", name: "default smile");
-
-  //Other stuff
-  SharedPreferences prefs;
-
   @override
   void initState() {
-    asyncInitState();
     super.initState();
-  }
 
-  void asyncInitState() async {
-    prefs = await SharedPreferences.getInstance();
-    setState(() {
-      playerList = getStoredPlayerList(prefs);
-    });
+    if (playerSetsIndex == null) {
+      if (playerSets != null) {
+        playerSetsIndex = playerSets.length;
+      }
+      playerList = [];
+    } else {
+      playerList = playerSets[playerSetsIndex].playerList;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    print(playerSets);
     return Scaffold(
         appBar: AppBar(
-          title: Text("Pick Your Player"),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.done, color: Colors.white),
-              onPressed: () => {
-                if (playerList.length > 0)
-                  {
-                    persistPlayerList(playerList, prefs,
-                        0), //TODO: Allow mutlple player lists
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            CardsScreen(playerList: playerList)))
-                  }
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.delete_forever),
-              onPressed: () async {
-                await showClearDialog();
-              },
-            )
-          ],
-        ),
-        body: playerList == null
-            ? Container(child: Text("Loading saved players..."))
-            : Container(
-                padding: EdgeInsets.all(5),
-                child: Column(
-                  children: <Widget>[
-                    editingIndex == null
-                        ? Padding(
-                            padding: EdgeInsets.all(5),
-                            child: _addPlayerField(context))
-                        : Container(),
-                    FlatButton(
-                      child: Text("Pick Rules"),
-                      onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (context) => RulesSelectScreen())),
+          title: Container(
+            child: editingName == true
+                ? SizedBox(
+                    width: 150,
+                    child: TextField(
+                      onSubmitted: (name) {
+                        setState(() {
+                          setName = name;
+                          editingName = false;
+                        });
+                      },
+                    ))
+                : FlatButton(
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.edit),
+                        Expanded(
+                            child: Text(setName ?? "Player List 1",
+                                style: setName == null
+                                    ? TextStyle(
+                                        color: Colors.white54,
+                                        decoration: TextDecoration.underline)
+                                    : TextStyle())),
+                      ],
                     ),
-                    Expanded(child: _buildList(context, playerList)),
-                  ],
-                ),
-              ));
+                    onPressed: () {
+                      setState(() {
+                        editingName = true;
+                      });
+                    }),
+          ),
+          actions: editingName == true
+              ? <Widget>[
+                  IconButton(
+                    icon: Icon(Icons.cancel),
+                    onPressed: () {
+                      setState(() {
+                        editingName = false;
+                      });
+                    },
+                  ),
+                ]
+              : <Widget>[
+                  IconButton(
+                      icon: Icon(Icons.done, color: Colors.white),
+                      onPressed: () async {
+                        if (playerList == null || playerList.length == 0) {
+                          return;
+                        }
+                        var playerSet =
+                            PlayerSet(playerList: playerList, setName: setName);
+                        if (playerSetsIndex == null && playerSets != null) {
+                          print("1");
+                          playerSets.add(playerSet);
+                        } else if (playerSets == null) {
+                          print("2");
+                          playerSets = [playerSet];
+                        } else {
+                          print("3");
+                          playerSets[playerSetsIndex] = playerSet;
+                        }
+                        print(
+                            "VSCode debugging breakpoitns stopped working lol");
+                        await (SharedPreferences.getInstance().then((prefs) {
+                          print("4");
+                          persistPlayerSet(
+                            playerSets,
+                            prefs,
+                          );
+                        }))
+                            .then((_) {
+                          print("5");
+
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) =>
+                                  RulesSelectScreen(playerSet: playerSet)));
+                        });
+                      }),
+                  IconButton(
+                    icon: Icon(Icons.delete_forever),
+                    onPressed: () async {
+                      await showClearDialog();
+                    },
+                  )
+                ],
+        ),
+        body: Container(
+          padding: EdgeInsets.all(5),
+          child: Column(
+            children: <Widget>[
+              editingIndex == null
+                  ? Padding(
+                      padding: EdgeInsets.all(5),
+                      child: _addPlayerField(context))
+                  : Container(),
+              Expanded(child: _buildList(context, playerList)),
+            ],
+          ),
+        ));
   }
 
   Widget _buildList(context, playerList) {
-    if (playerList.length > 0) {
+    if (playerList != null && playerList.length > 0) {
       return ListView.builder(
           itemCount: playerList.length,
           itemBuilder: (context, index) {
@@ -265,7 +324,7 @@ class PlayersListState extends State<PlayersList> {
           SizedBox(
             width: 20,
           ),
-          Text(player.name, style: TextStyle(fontSize: 24)),
+          Expanded(child: Text(player.name, style: TextStyle(fontSize: 24))),
           SizedBox(width: 20),
           IconButton(
               icon: Icon(Icons.edit),
@@ -304,7 +363,6 @@ class PlayersListState extends State<PlayersList> {
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     _controller.dispose();
     super.dispose();
   }

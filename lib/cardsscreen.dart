@@ -1,33 +1,35 @@
-
 import 'package:flutter/material.dart';
-import 'package:sociables/playerlist.dart';
 import 'package:sociables/storedrulelist.dart';
 
 import 'businesslogicbaby.dart';
+import 'models.dart';
 
 class CardsScreen extends StatefulWidget {
-  final List<Player> playerList;
+  final PlayerSet playerSet;
   final RuleSet ruleSet;
   final cards = shuffle();
-  CardsScreen({this.playerList, this.ruleSet});
+  CardsScreen({this.playerSet, this.ruleSet});
 
   @override
-  _CardsScreenState createState() => _CardsScreenState(cards, playerList);
+  _CardsScreenState createState() => _CardsScreenState(cards, playerSet);
 }
 
 class _CardsScreenState extends State<CardsScreen> {
   final cards;
-  final List<Player> playerList;
-  _CardsScreenState(this.cards, this.playerList);
+  final PlayerSet playerSet;
+  _CardsScreenState(this.cards, this.playerSet);
   var index = 0;
   Widget build(BuildContext context) {
+    List<Player> playerList = playerSet.playerList;
     var player = playerList[index % playerList.length];
     var rule = getRule(cards[index].cardType, classicRuleList);
     if (rule.persists == true) {
-      rule.assignedPlayer = player; 
+      rule.assignedPlayer = player;
       if (rule.assignedPlayer != null) {
         //Remove rule from the previous player it was assigned to
-        playerList[playerList.indexOf(rule.assignedPlayer)].rulesApplied.remove(rule);
+        playerList[playerList.indexOf(rule.assignedPlayer)]
+            .rulesApplied
+            .remove(rule);
       }
       player.rulesApplied.add(rule);
     }
@@ -37,13 +39,7 @@ class _CardsScreenState extends State<CardsScreen> {
           actions: <Widget>[
             IconButton(
                 icon: Icon(Icons.person_add, color: Colors.white),
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              PlayersList(playerList: playerList)));
-                })
+                onPressed: () => Navigator.of(context).pop())
           ],
         ),
         body: Container(
@@ -69,7 +65,10 @@ class _CardsScreenState extends State<CardsScreen> {
                     )),
               ),
               Text(
-                "${player.name}" + (player.rulesApplied != [] ? getRulesAppliedString(player) : ""),
+                "${player.name}" +
+                    (player.rulesApplied != []
+                        ? getRulesAppliedString(player)
+                        : ""),
                 style: Theme.of(context).textTheme.display2,
                 textAlign: TextAlign.center,
               ),
@@ -136,11 +135,12 @@ class _CardsScreenState extends State<CardsScreen> {
           );
         });
   }
+
   String getRulesAppliedString(Player player) {
     var stringList = [];
     player.rulesApplied.forEach((rule) {
       stringList.add(rule.emoji);
     });
     return stringList.join(" ");
-  } 
+  }
 }

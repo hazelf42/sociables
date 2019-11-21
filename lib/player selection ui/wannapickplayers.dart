@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:sociables/businesslogicbaby.dart';
-import 'package:sociables/main.dart';
-import 'package:sociables/playerlist.dart';
+import 'package:sociables/player%20selection%20ui/playerlist.dart';
 
-import 'cardsscreen.dart';
+import '../cardsscreen.dart';
+import '../models.dart';
+
 
 class WannaPickPlayers extends StatelessWidget {
   RuleSet ruleSet;
@@ -19,7 +19,7 @@ class WannaPickPlayers extends StatelessWidget {
               child: Text("Yep, let's add players!"),
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => PlayersList(ruleSet: ruleSet)));
+                    builder: (context) => PlayersList()));
               }),
           FlatButton(
             child: Text("No thanks, we'll (try to) keep track"),

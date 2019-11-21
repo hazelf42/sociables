@@ -1,3 +1,5 @@
+import 'package:sociables/models.dart';
+
 import 'businesslogicbaby.dart';
 
 List<Rule> classicRuleList = [
