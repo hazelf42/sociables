@@ -26,6 +26,7 @@ class PlayersListState extends State<PlayersList> {
   List<PlayerSet> playerSets;
   int playerSetsIndex;
   String setName;
+
   PlayersListState(this.playerSetsIndex, this.playerSets);
   List<Player> playerList;
 
@@ -37,7 +38,9 @@ class PlayersListState extends State<PlayersList> {
 
   //Player stuff
   String newPlayerName = "";
-  Emoji emojiSelected = Emoji(emoji: "😃", name: "default smile");
+  Emoji emojiSelected = Emoji(
+      emoji: emojiList[Random().nextInt(emojiList.length)],
+      name: "default smile");
   @override
   void initState() {
     super.initState();
@@ -54,7 +57,8 @@ class PlayersListState extends State<PlayersList> {
 
   @override
   Widget build(BuildContext context) {
-    print(playerSets);
+    
+    print(playerList);
     return Scaffold(
         appBar: AppBar(
           title: Container(
@@ -74,7 +78,9 @@ class PlayersListState extends State<PlayersList> {
                       children: <Widget>[
                         Icon(Icons.edit),
                         Expanded(
-                            child: Text(setName ?? "Player List 1",
+                            child: Text(
+                                setName ??
+                                    "Player List ${(playerSetsIndex == null ? playerSets.length + 1 : playerSetsIndex + 1)}",
                                 style: setName == null
                                     ? TextStyle(
                                         color: Colors.white54,
@@ -195,7 +201,7 @@ class PlayersListState extends State<PlayersList> {
               child: FlatButton(
                   child: Container(
                       child: Row(children: [
-                    Text(emojiSelected.emoji ?? " 😃",
+                    Text(emojiSelected.emoji ?? " ${emojiSelected.emoji}",
                         style: TextStyle(fontSize: 24),
                         textAlign: TextAlign.center),
                     Icon(Icons.arrow_drop_down)
@@ -225,8 +231,13 @@ class PlayersListState extends State<PlayersList> {
                           ? newPlayerName
                           : listOfNames[playerList.length % listOfNames.length],
                       emoji: emojiSelected.emoji));
+
+                  emojiSelected = Emoji(
+                      emoji: emojiList[Random().nextInt(emojiList.length)],
+                      name: "default smile");
                 }),
-                emojiSelected = Emoji(emoji: "😃", name: "Default"),
+                emojiSelected =
+                    Emoji(emoji: emojiSelected.emoji, name: "Default"),
                 _controller.clear(),
               }),
       IconButton(
@@ -244,7 +255,15 @@ class PlayersListState extends State<PlayersList> {
     _controller.addListener(() {
       player.name = _controller.text;
     });
-    return Row(children: <Widget>[
+    return 
+    Card(
+      
+ child: Container(
+      width: MediaQuery.of(context).size.width - 50,
+      height: 75,
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: 
+    Row(children: <Widget>[
       isShowing != false
           ? EmojiPicker(
               rows: 3,
@@ -263,7 +282,7 @@ class PlayersListState extends State<PlayersList> {
               child: FlatButton(
                   child: Container(
                       child: Row(children: [
-                    Text(emojiSelected.emoji ?? " 😃",
+                    Text(emojiSelected.emoji ?? " ${emojiSelected.emoji}",
                         style: TextStyle(fontSize: 24),
                         textAlign: TextAlign.center),
                     Icon(Icons.arrow_drop_down)
@@ -288,10 +307,16 @@ class PlayersListState extends State<PlayersList> {
         color: Colors.green,
         onPressed: () => newPlayerName != ""
             ? {
-                emojiSelected = Emoji(emoji: "😃", name: "Default"),
+                emojiSelected =
+                    Emoji(emoji: emojiSelected.emoji, name: "Default"),
                 setState(() {
-                  playerList.add(
-                      Player(name: newPlayerName, emoji: emojiSelected.emoji));
+                  playerList[editingIndex] = 
+                      Player(name: newPlayerName, emoji: emojiSelected.emoji);
+                  emojiSelected = Emoji(
+                      emoji: emojiList[Random().nextInt(emojiList.length)],
+                      name: "default smile");
+                      editingIndex = null;
+
                 }),
                 _controller.clear(),
               }
@@ -301,14 +326,15 @@ class PlayersListState extends State<PlayersList> {
           icon: Icon(Icons.delete),
           color: Colors.red,
           onPressed: () => {
-                emojiSelected = Emoji(emoji: "😃", name: "Default"),
+                emojiSelected =
+                    Emoji(emoji: emojiSelected.emoji, name: "Default"),
                 setState(() {
                   playerList.remove(player);
                   editingIndex = null;
                 }),
                 _controller.clear(),
               })
-    ]);
+    ])));
   }
 
   Widget _playerCard(Player player, int index) {
@@ -330,9 +356,10 @@ class PlayersListState extends State<PlayersList> {
               icon: Icon(Icons.edit),
               onPressed: () => setState(() {
                     editingIndex = index;
+                    emojiSelected = Emoji(emoji: playerList[index].emoji, name: "");
                   }))
         ],
-      ),
+      )
     ));
   }
 
